@@ -1,0 +1,32 @@
+.player-stats {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 250px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    overflow-y: auto;
+    color: white;
+    padding-top: 5rem; /* Space for header */
+}
+
+.player-stats-title {
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stats-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+    .stats-item span {
+        font-size: 1.1rem;
+    }

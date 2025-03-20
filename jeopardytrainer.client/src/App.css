@@ -1,0 +1,241 @@
+﻿#root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+:root {
+    --jeopardy-blue: #060CE9;
+}
+
+th, td {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+body {
+    background-color: var(--jeopardy-blue);
+    color: white;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+.app-container {
+    color: white;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-title {
+    color: white;
+    font-family: 'Swiss 911', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    font-size: 2.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    margin: 0;
+    padding: 1rem 0;
+    width: 100%;
+}
+
+.content-container {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.answer-display {
+    border-radius: 8px;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    width: 100%;
+}
+
+/* Form styling */
+.form-control {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1.1rem;
+}
+
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.15);
+        color: white;
+    }
+
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+/* Button styling */
+.btn-success {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+    .btn-success:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .btn-success:disabled {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+/* Make sure container is full width */
+.container {
+    max-width: 100%;
+    width: 100%;
+}
+
+/* Response box styling */
+.response-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.response-prefix,
+.response-suffix {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.form-control {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0;
+    color: white;
+    font-size: 1.1rem;
+    padding: 0.5rem;
+    min-width: 200px;
+}
+
+.form-control:focus {
+    background: transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.4);
+    box-shadow: none;
+    color: white;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+}
+
+.bottom-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.new-question-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+    .new-question-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+/* Update content-container to avoid button overlap */
+.content-container {
+    padding-bottom: 5rem;
+}
+
+.category-sidebar {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    height: 100%;
+    overflow-y: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.category-list {
+    color: white;
+}
+
+.category-list-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.knowledge-area {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.category-items {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1.5rem;
+}
+
+.category-item {
+    padding: 0.5rem 0;
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+    .category-item:hover {
+        color: white;
+        padding-left: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+.category-list-loading {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+/* Update existing content container styles */
+.content-container {
+    padding-right: 270px; /* 250px sidebar width + 20px gap */
+}
