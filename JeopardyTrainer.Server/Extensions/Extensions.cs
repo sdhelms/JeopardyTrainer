@@ -13,7 +13,7 @@ namespace JeopardyTrainer.Server.Extensions
         {
             using var scope = app.ApplicationServices.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DataContext>();
-            await context.LoadCountryListAsync();
+            await context.LoadCountriesAsync();
         }
 
         #endregion
