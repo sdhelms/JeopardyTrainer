@@ -2,11 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import './CategoryList.css';
 
-const CategoryList = ({ categories, selectedCategory, onCategorySelect, error, loading }) => {
+const CategoryList = ({ categories, selectedCategory, onCategorySelect, loading }) => {
     return (
         <div className="categories-section">
             <h2 className="section-title">Categories</h2>
-            {error && <div className="error-message">{error}</div>}
             <div className="categories-list">
                 {loading ? (
                     <div className="category-item loading">

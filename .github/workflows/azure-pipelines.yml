@@ -1,0 +1,64 @@
+trigger:
+  branches:
+    include:
+    - main
+    - master
+    - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: FrontendTest
+  displayName: 'Frontend Tests'
+  jobs:
+  - job: JestTests
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js'
+
+    - script: |
+        cd JeopardyTrainer.Client
+        npm ci
+        npm test -- --coverage
+      displayName: 'Run Jest Tests'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: 'JeopardyTrainer.Client/coverage'
+        artifact: 'frontend-test-results'
+        publishLocation: 'pipeline'
+      displayName: 'Publish Frontend Test Results'
+
+- stage: BackendTest
+  displayName: 'Backend Tests'
+  jobs:
+  - job: DotnetTests
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
+
+    - script: |
+        dotnet restore
+        dotnet build --no-restore
+        dotnet test --no-build --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput="./TestResults/"
+      displayName: 'Run .NET Tests'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '**/TestResults/'
+        artifact: 'backend-test-results'
+        publishLocation: 'pipeline'
+      displayName: 'Publish Backend Test Results'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: 'JeopardyTrainer.Server/Database/countries.json'
+        artifact: 'country-data-backup'
+        publishLocation: 'pipeline'
+      displayName: 'Publish Country Data Backup'
+      condition: succeededOrFailed()

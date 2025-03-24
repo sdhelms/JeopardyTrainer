@@ -316,7 +316,6 @@ function App() {
                     categories={categories}
                     selectedCategory={selectedCategory}
                     onCategorySelect={handleCategorySelect}
-                    error={error}
                     loading={loading}
                 />
 
@@ -339,10 +338,11 @@ function App() {
                 </div>
             </div>
 
-            <div className="main-content">
+            <div className="main-content" role="main">
                 <div className="content-area">
-                    <div className="centered-content">
+                    <div className="centered-content" data-testid="main-content-area">
                         {renderContent()}
+                        {error && <div className="error-message" data-testid="error-message">{error}</div>}
                     </div>
                 </div>
             </div>

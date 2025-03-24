@@ -1,0 +1,79 @@
+name: Jeopardy Trainer CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: JeopardyTrainer.Client/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: ./JeopardyTrainer.Client
+        run: npm ci
+      
+      - name: Run Jest tests with coverage
+        working-directory: ./JeopardyTrainer.Client
+        run: npm test -- --coverage
+      
+      - name: Upload frontend test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-test-results
+          path: |
+            JeopardyTrainer.Client/coverage/
+          retention-days: 14
+          if-no-files-found: warn
+  
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build
+        run: dotnet build --no-restore
+      
+      - name: Test with coverage
+        run: dotnet test --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput="./TestResults/"
+      
+      - name: Upload backend test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-test-results
+          path: |
+            **/TestResults/
+            **/coverage.cobertura.xml
+          retention-days: 14
+          if-no-files-found: warn
+      
+      - name: Upload country data backup
+        uses: actions/upload-artifact@v3
+        with:
+          name: country-data-backup
+          path: |
+            JeopardyTrainer.Server/Database/countries.json
+          retention-days: 30
+          if-no-files-found: warn

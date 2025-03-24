@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static JeopardyTrainer.Server.Models.Categories;
 
-internal class Program
+public class Program
 {
     private static async Task Main(string[] args)
     {
