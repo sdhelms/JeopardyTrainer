@@ -1,6 +1,0 @@
-@JeopardyTrainer.Server_HostAddress = http://localhost:5063
-
-GET {{JeopardyTrainer.Server_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

@@ -1,66 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import './CategoryList.css';
 
-function CategoryList({ onCategorySelect, selectedCategory }) {
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        loadCategories();
-    }, []);
-
-    const loadCategories = async () => {
-        try {
-            const response = await fetch('https://localhost:7247/Categories');
-            if (response.ok) {
-                const data = await response.json();
-                setCategories(data);
-            }
-        } catch (error) {
-            console.error('Failed to load categories:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const groupCategories = (categories) => {
-        return categories.reduce((groups, category) => {
-            const area = category.knowledgeArea;
-            if (!groups[area]) {
-                groups[area] = [];
-            }
-            groups[area].push(category);
-            return groups;
-        }, {});
-    };
-
-    if (loading) return <div className="category-list category-list-loading">Loading categories...</div>;
-
-    const groupedCategories = groupCategories(categories);
-
+const CategoryList = ({ categories, selectedCategory, onCategorySelect, error, loading }) => {
     return (
-        <aside className="category-list">
-            <h2 className="category-list-title">Categories</h2>
-            <div className="category-groups">
-                {Object.entries(groupedCategories).map(([area, cats]) => (
-                    <div key={area} className="category-group">
-                        <h3 className="knowledge-area">{area}</h3>
-                        <ul className="category-items">
-                            {cats.map(category => (
-                                <li
-                                    key={category.categoryType}
-                                    className={`category-item ${selectedCategory?.categoryType === category.categoryType ? 'selected' : ''}`}
-                                    onClick={() => onCategorySelect(category)}
-                                >
-                                    {category.name}
-                                </li>
-                            ))}
-                        </ul>
+        <div className="categories-section">
+            <h2 className="section-title">Categories</h2>
+            {error && <div className="error-message">{error}</div>}
+            <div className="categories-list">
+                {loading ? (
+                    <div className="category-item loading">
+                        Loading categories...
                     </div>
-                ))}
+                ) : categories.length === 0 ? (
+                    <div className="category-item">
+                        No categories available
+                    </div>
+                ) : (
+                    categories.map((category) => (
+                        <div
+                            key={category.categoryType}
+                            className={`category-item ${selectedCategory?.categoryType === category.categoryType
+                                    ? 'selected'
+                                    : ''
+                                }`}
+                            onClick={() => onCategorySelect(category)}
+                        >
+                            {category.name}
+                        </div>
+                    ))
+                )}
             </div>
-        </aside>
+        </div>
     );
-}
+};
 
-export default CategoryList;
+CategoryList.propTypes = {
+    categories: PropTypes.arrayOf(
+        PropTypes.shape({
+            categoryType: PropTypes.number.isRequired,
+            name: PropTypes.string.isRequired
+        })
+    ).isRequired,
+    selectedCategory: PropTypes.shape({
+        categoryType: PropTypes.number.isRequired
+    }),
+    onCategorySelect: PropTypes.func.isRequired,
+    error: PropTypes.string,
+    loading: PropTypes.bool
+};
+
+CategoryList.defaultProps = {
+    categories: [],
+    error: null,
+    loading: false
+};
+
+export default React.memo(CategoryList);

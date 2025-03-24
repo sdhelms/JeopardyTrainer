@@ -19,7 +19,7 @@ namespace JeopardyTrainer.Server.Models
     public enum Categories
     {
         [Display(Name = "Flags", Description = "Countries")]
-        Countries_Flags,
+        Countries_Flags = 1,
         [Display(Name = "World Capitals", Description = "Countries")]
         Countries_WorldCapitals,
         [Display(Name = "Countries by Capital", Description = "Countries")]

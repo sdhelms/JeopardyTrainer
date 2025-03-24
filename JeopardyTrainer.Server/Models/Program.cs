@@ -53,22 +53,37 @@ internal class Program
             return Enum.GetValues<Categories>().Select(e => new Category(e));
         });
 
-        app.MapGet("Clues/{category}/{pointValue}", async (DataContext db, Categories category, int pointValue) =>
+        app.MapGet("Clues/{category}", async (DataContext db, Categories category) =>
         {
-            return await GetNextClue(db, category, pointValue);
+            return await GetNextClue(db, category);
+        });
+
+        app.MapPost("Clues/CheckResponse", (DataContext db, JeopardyResponse answer) =>
+        {
+            var knowledgeArea = answer.Question.GetKnowledgeArea();
+
+            switch (knowledgeArea)
+            {
+                case KnowledgeAreas.Countries:
+                    return CheckCountryAnswer(db, answer);
+                case KnowledgeAreas.Shakespeare:
+                    throw new NotImplementedException();
+                default:
+                    throw new InvalidOperationException($"Knowledge area {knowledgeArea} is not valid.");
+            }
         });
 
         app.Run();
     }
 
-    private static async Task<JeopardyClue> GetNextClue(DataContext db, Categories category, int pointValue)
+    private static async Task<JeopardyClue> GetNextClue(DataContext db, Categories category)
     {
         var knowledgeArea = (KnowledgeAreas)Enum.Parse(typeof(KnowledgeAreas), category.GetDisplayDescription() ?? "");
 
         switch (knowledgeArea)
         {
             case KnowledgeAreas.Countries:
-                return await GetCountryClue(db, category, pointValue);
+                return await GetCountryClue(db, category);
             case KnowledgeAreas.Shakespeare:
                 throw new NotImplementedException();
             default:
@@ -76,22 +91,28 @@ internal class Program
         }
     }
 
-    private static async Task<JeopardyClue> GetCountryClue(DataContext db, Categories category, int pointValue)
+    private static async Task<JeopardyClue> GetCountryClue(DataContext db, Categories category)
     {
         var country = await GetRandomCountry(db);
+        string clueValue;
 
         switch (category)
         {
             case Countries_Flags:
-                return new JeopardyClue { Clue = country.Flag, ExpectedResponse = country.Name, PointValue = pointValue };
+                clueValue = country.Flag;
+                break;
             case Countries_WorldCapitals:
-                return new JeopardyClue { Clue = country.Capital, ExpectedResponse = country.Name, PointValue = pointValue };
+                clueValue = country.Capital;
+                break;
             case Countries_CountriesByCapital:
-                return new JeopardyClue { Clue = country.Name, ExpectedResponse = country.Capital, PointValue = pointValue };
+                clueValue = country.Name;
+                break;
             default:
                 throw new InvalidOperationException($"Category value {category} is not valid.");
         }
-    }
+
+        return new JeopardyClue(clueValue, category);
+    }    
 
     private static async Task<Country> GetRandomCountry(DataContext db)
     {
@@ -101,5 +122,40 @@ internal class Program
         return randomCountry;
     }
 
-    
+    private static async Task<JeopardyResponseResult> CheckCountryAnswer(DataContext db, JeopardyResponse answer)
+    {
+        // Find the matching country based on the question category and clue
+        Country country;
+        string correctAnswer;
+
+        switch (answer.Question.Category)
+        {
+            case Countries_Flags:
+                country = await db.Countries.FirstAsync(c => c.Flag == answer.Question.Clue);
+                correctAnswer = country.Name;
+                break;
+            case Countries_WorldCapitals:
+                country = await db.Countries.FirstAsync(c => c.Capital == answer.Question.Clue);
+                correctAnswer = country.Name;
+                break;
+            case Countries_CountriesByCapital:
+                country = await db.Countries.FirstAsync(c => c.Name == answer.Question.Clue);
+                correctAnswer = country.Capital;
+                break;
+            default:
+                throw new InvalidOperationException($"Category is not valid.");
+        }
+
+        // Normalize strings for comparison: trim and remove punctuation
+        var normalizedCorrectAnswer = new string(correctAnswer.Trim()
+            .Where(c => !char.IsPunctuation(c)).ToArray());
+        var normalizedResponse = new string(answer.Response.Trim()
+            .Where(c => !char.IsPunctuation(c)).ToArray());
+
+        return new JeopardyResponseResult
+        {
+            CorrectResponse = correctAnswer,
+            IsCorrect = string.Equals(normalizedResponse, normalizedCorrectAnswer, StringComparison.OrdinalIgnoreCase)
+        };
+    }
 }
