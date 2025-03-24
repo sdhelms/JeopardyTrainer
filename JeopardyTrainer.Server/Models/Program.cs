@@ -50,26 +50,66 @@ public class Program
 
         app.MapGet("Categories", () =>
         {
-            return Enum.GetValues<Categories>().Select(e => new Category(e));
-        });
-
-        app.MapGet("Clues/{category}", async (DataContext db, Categories category) =>
-        {
-            return await GetNextClue(db, category);
-        });
-
-        app.MapPost("Clues/CheckResponse", (DataContext db, JeopardyResponse answer) =>
-        {
-            var knowledgeArea = answer.Question.GetKnowledgeArea();
-
-            switch (knowledgeArea)
+            try
             {
-                case KnowledgeAreas.Countries:
-                    return CheckCountryAnswer(db, answer);
-                case KnowledgeAreas.Shakespeare:
-                    throw new NotImplementedException();
-                default:
-                    throw new InvalidOperationException($"Knowledge area {knowledgeArea} is not valid.");
+                return Results.Ok(Enum.GetValues<Categories>().Select(e => new Category(e)));
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem("An error occurred while retrieving categories.", statusCode: 500);
+            }
+        });
+
+        app.MapGet("Clues/{category}", async (HttpContext context, DataContext db) =>
+        {
+            if (!IsValidCategory(context.Request.RouteValues["category"]?.ToString(), out Categories category))
+            {
+                return Results.NotFound();
+            }
+
+            try
+            {
+                var clue = await GetNextClue(db, category);
+                return Results.Ok(clue);
+            }
+            catch (InvalidOperationException)
+            {
+                return Results.NotFound();
+            }
+        });
+
+
+        app.MapPost("Clues/CheckResponse", async (HttpContext context, DataContext db) =>
+        {
+            try
+            {
+                var answer = await context.Request.ReadFromJsonAsync<JeopardyResponse>();
+                if (answer == null || answer.Question == null)
+                {
+                    return Results.BadRequest("Invalid request format");
+                }
+
+                var knowledgeArea = answer.Question.GetKnowledgeArea();
+
+                switch (knowledgeArea)
+                {
+                    case KnowledgeAreas.Countries:
+                        var result = await CheckCountryAnswer(db, answer);
+                        return Results.Ok(result);
+                    case KnowledgeAreas.Shakespeare:
+                        return Results.StatusCode(501); // Not Implemented
+                    default:
+                        return Results.BadRequest($"Knowledge area {knowledgeArea} is not valid.");
+                }
+            }
+            catch (JsonException)
+            {
+                return Results.BadRequest("Invalid JSON format");
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return Results.BadRequest($"Invalid request: {ex.Message}");
             }
         });
 
@@ -112,7 +152,7 @@ public class Program
         }
 
         return new JeopardyClue(clueValue, category);
-    }    
+    }
 
     private static async Task<Country> GetRandomCountry(DataContext db)
     {
@@ -157,5 +197,13 @@ public class Program
             CorrectResponse = correctAnswer,
             IsCorrect = string.Equals(normalizedResponse, normalizedCorrectAnswer, StringComparison.OrdinalIgnoreCase)
         };
+    }
+
+    private static bool IsValidCategory(string? categoryString, out Categories category)
+    {
+        category = default;
+        return int.TryParse(categoryString, out int categoryNumber) &&
+               Enum.IsDefined(typeof(Categories), categoryNumber) &&
+               Enum.TryParse(categoryString, out category);
     }
 }

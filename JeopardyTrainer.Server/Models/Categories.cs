@@ -1,6 +1,5 @@
 ﻿using JeopardyTrainer.Server.Extensions;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
 
 namespace JeopardyTrainer.Server.Models
 {
