@@ -7,15 +7,49 @@ on:
     branches: [ main, master, develop ]
 
 jobs:
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build
+        run: dotnet build --no-restore
+      
+      - name: Test with coverage
+        run: dotnet test --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput="./TestResults/"
+      
+      - name: Upload backend test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: |
+            **/TestResults/
+            **/coverage.cobertura.xml
+          retention-days: 14
+  
   frontend-test:
     name: Frontend Tests
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
@@ -30,50 +64,8 @@ jobs:
         run: npm test -- --coverage
       
       - name: Upload frontend test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-test-results
-          path: |
-            JeopardyTrainer.Client/coverage/
+          path: JeopardyTrainer.Client/coverage/
           retention-days: 14
-          if-no-files-found: warn
-  
-  backend-test:
-    name: Backend Tests
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '8.0.x'
-      
-      - name: Restore dependencies
-        run: dotnet restore
-      
-      - name: Build
-        run: dotnet build --no-restore
-      
-      - name: Test with coverage
-        run: dotnet test --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput="./TestResults/"
-      
-      - name: Upload backend test results
-        uses: actions/upload-artifact@v3
-        with:
-          name: backend-test-results
-          path: |
-            **/TestResults/
-            **/coverage.cobertura.xml
-          retention-days: 14
-          if-no-files-found: warn
-      
-      - name: Upload country data backup
-        uses: actions/upload-artifact@v3
-        with:
-          name: country-data-backup
-          path: |
-            JeopardyTrainer.Server/Database/countries.json
-          retention-days: 30
-          if-no-files-found: warn
