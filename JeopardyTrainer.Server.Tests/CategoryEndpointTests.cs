@@ -1,35 +1,32 @@
-﻿using System.Net;
+﻿using Xunit;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using JeopardyTrainer.Server.Models;
-using Xunit;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace JeopardyTrainer.Server.Tests;
-
-public class CategoryEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+namespace JeopardyTrainer.Server.Tests
 {
-    private readonly WebApplicationFactory<Program> _factory;
-
-    public CategoryEndpointTests(WebApplicationFactory<Program> factory)
+    public class CategoryEndpointTests : ApiTestFixture
     {
-        _factory = factory;
-    }
+        public CategoryEndpointTests(WebApplicationFactory<Program> factory) : base(factory) { }
 
-    [Fact]
-    public async Task GetCategories_ReturnsSuccessAndAllCategories()
-    {
-        // Arrange
-        var client = _factory.CreateClient();
+        [Fact]
+        public async Task GetCategories_ReturnsAllCategories()
+        {
+            // Act
+            var response = await Client.GetAsync("/Categories");
 
-        // Act
-        var response = await client.GetAsync("/Categories");
-        var categories = await response.Content.ReadFromJsonAsync<IEnumerable<Category>>();
+            // Assert
+            response.EnsureSuccessStatusCode();
 
-        // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.NotNull(categories);
-        Assert.Equal(3, categories.Count()); // Based on your enum with 3 categories
+            var categories = await response.Content.ReadFromJsonAsync<List<Category>>();
+            Assert.NotNull(categories);
+            Assert.Equal(3, categories.Count);
+
+            // Verify category names match expected values
+            Assert.Contains(categories, c => c.Name == "Flags");
+            Assert.Contains(categories, c => c.Name == "World Capitals");
+            Assert.Contains(categories, c => c.Name == "Countries by Capital");
+        }
     }
 }
