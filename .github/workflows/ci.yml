@@ -22,30 +22,22 @@ jobs:
             8.0.x
             9.0.x
       
-      - name: List repository contents
-        run: find . -type f -name "*.esproj" | sort
+      - name: Restore test project dependencies
+        run: dotnet restore JeopardyTrainer.Server.Tests/JeopardyTrainer.Server.Tests.csproj
       
-      - name: Update .csproj file to handle missing esproj
-        run: |
-          sed -i '/JeopardyTrainer\.Client\.esproj/d' JeopardyTrainer.Server/JeopardyTrainer.Server.csproj
-          cat JeopardyTrainer.Server/JeopardyTrainer.Server.csproj
+      - name: Build test project
+        run: dotnet build JeopardyTrainer.Server.Tests/JeopardyTrainer.Server.Tests.csproj --no-restore
       
-      - name: Restore dependencies
-        run: dotnet restore
-      
-      - name: Build
-        run: dotnet build --no-restore
-      
-      - name: Test with coverage
-        run: dotnet test --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput="./TestResults/"
+      - name: Run tests with coverage
+        run: dotnet test JeopardyTrainer.Server.Tests/JeopardyTrainer.Server.Tests.csproj --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput="./TestResults/"
       
       - name: Upload backend test results
         uses: actions/upload-artifact@v4
         with:
           name: backend-test-results
           path: |
-            **/TestResults/
-            **/coverage.cobertura.xml
+            JeopardyTrainer.Server.Tests/TestResults/
+            JeopardyTrainer.Server.Tests/coverage.cobertura.xml
           retention-days: 14
   
   frontend-test:
@@ -56,42 +48,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: List frontend directory
-        run: |
-          ls -la ./JeopardyTrainer.Client || ls -la ./jeopardytrainer.client || echo "Client directory not found"
-      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
-          cache-dependency-path: |
-            JeopardyTrainer.Client/package-lock.json
-            jeopardytrainer.client/package-lock.json
-      
-      - name: Find package.json location
-        id: find-package
-        run: |
-          if [ -f "JeopardyTrainer.Client/package.json" ]; then
-            echo "client_dir=JeopardyTrainer.Client" >> $GITHUB_OUTPUT
-          elif [ -f "jeopardytrainer.client/package.json" ]; then
-            echo "client_dir=jeopardytrainer.client" >> $GITHUB_OUTPUT
-          else
-            echo "No package.json found!"
-            exit 1
-          fi
+          cache-dependency-path: JeopardyTrainer.Client/package-lock.json
       
       - name: Install dependencies
-        working-directory: ./${{ steps.find-package.outputs.client_dir }}
+        working-directory: ./JeopardyTrainer.Client
         run: npm ci
       
       - name: Run Jest tests with coverage
-        working-directory: ./${{ steps.find-package.outputs.client_dir }}
+        working-directory: ./JeopardyTrainer.Client
         run: npm test -- --coverage
       
       - name: Upload frontend test results
         uses: actions/upload-artifact@v4
         with:
           name: frontend-test-results
-          path: ${{ steps.find-package.outputs.client_dir }}/coverage/
+          path: JeopardyTrainer.Client/coverage/
           retention-days: 14
+
