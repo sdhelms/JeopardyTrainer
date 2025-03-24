@@ -22,6 +22,14 @@ jobs:
             8.0.x
             9.0.x
       
+      - name: List repository contents
+        run: find . -type f -name "*.esproj" | sort
+      
+      - name: Update .csproj file to handle missing esproj
+        run: |
+          sed -i '/JeopardyTrainer\.Client\.esproj/d' JeopardyTrainer.Server/JeopardyTrainer.Server.csproj
+          cat JeopardyTrainer.Server/JeopardyTrainer.Server.csproj
+      
       - name: Restore dependencies
         run: dotnet restore
       
@@ -48,24 +56,42 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: List frontend directory
+        run: |
+          ls -la ./JeopardyTrainer.Client || ls -la ./jeopardytrainer.client || echo "Client directory not found"
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
-          cache-dependency-path: JeopardyTrainer.Client/package-lock.json
+          cache-dependency-path: |
+            JeopardyTrainer.Client/package-lock.json
+            jeopardytrainer.client/package-lock.json
+      
+      - name: Find package.json location
+        id: find-package
+        run: |
+          if [ -f "JeopardyTrainer.Client/package.json" ]; then
+            echo "client_dir=JeopardyTrainer.Client" >> $GITHUB_OUTPUT
+          elif [ -f "jeopardytrainer.client/package.json" ]; then
+            echo "client_dir=jeopardytrainer.client" >> $GITHUB_OUTPUT
+          else
+            echo "No package.json found!"
+            exit 1
+          fi
       
       - name: Install dependencies
-        working-directory: ./JeopardyTrainer.Client
+        working-directory: ./${{ steps.find-package.outputs.client_dir }}
         run: npm ci
       
       - name: Run Jest tests with coverage
-        working-directory: ./JeopardyTrainer.Client
+        working-directory: ./${{ steps.find-package.outputs.client_dir }}
         run: npm test -- --coverage
       
       - name: Upload frontend test results
         uses: actions/upload-artifact@v4
         with:
           name: frontend-test-results
-          path: JeopardyTrainer.Client/coverage/
+          path: ${{ steps.find-package.outputs.client_dir }}/coverage/
           retention-days: 14
