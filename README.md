@@ -4,6 +4,10 @@
 
 A web application that helps users practice their knowledge in various categories through a Jeopardy-style game format.
 
+
+https://github.com/user-attachments/assets/03df459c-0a66-4fac-a3e6-e115e25da619
+
+
 ## Features
 
 - Browse and select from multiple knowledge categories
